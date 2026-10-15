@@ -52,6 +52,23 @@ The following core fixes and production enhancements were implemented to ensure 
 > ### 5. 🐍 Modern Python & Cross-Platform Wheel Compatibility
 > Updated `backend/requirements.txt` to `psycopg[binary]>=3.2.3` ensuring seamless native builds across Linux/WSL running Python 3.14 as well as standard Docker containers running Python 3.12.
 
+> [!IMPORTANT]
+> ### 6. 🛡️ DevSecOps Automated Vulnerability Gate & Remediation
+> **Problem Identified:**
+> During CI/CD execution, Aqua Security Trivy scanned `ghcr.io/agent-baba/taskboard-backend` and caught 3 `HIGH` severity CVEs in `starlette` (version `0.41.3` pulled by `fastapi==0.115.6`):
+> 1. `CVE-2025-62727`: Denial of Service (DoS) via quadratic CPU exhaustion ($O(n^2)$) when parsing HTTP Range headers.
+> 2. `CVE-2026-48818`: SSRF and credential leak via UNC paths in `StaticFiles`.
+> 3. `CVE-2026-54283`: DoS via unconstrained form field limits.
+>
+> Because the pipeline enforced `exit-code: 1`, the build halted immediately, preventing vulnerable artifacts from being pushed to the container registry.
+>
+> Additionally, the starter workflow had `aquasecurity/trivy-action@0.30.0` which failed because upstream maintainers revoked and deleted `setup-trivy@v0.2.2` during a security cleanup.
+>
+> **Production Fix Implemented:**
+> 1. Upgraded `.github/workflows/ci-cd.yml` to `aquasecurity/trivy-action@v0.36.0`, which pins its sub-actions to immutable commit hashes.
+> 2. Remediated the dependencies in `backend/requirements.txt`: upgraded `fastapi>=0.143.0` and `prometheus-fastapi-instrumentator>=8.1.0`, pulling patched `starlette>=1.8.0`.
+> 3. Verified zero HIGH/CRITICAL vulnerabilities remaining while maintaining 100% test pass rate across all 8 Pytest tests.
+
 ---
 
 ## M1 & M4 — Local Full Stack & Docker Compose Verification
@@ -120,9 +137,25 @@ The following core fixes and production enhancements were implemented to ensure 
 - **Workflow:** `.github/workflows/ci-cd.yml`
 - **Actions Run URL:** [https://github.com/AGENT-BABA/TaskBoard/actions](https://github.com/AGENT-BABA/TaskBoard/actions)
 - **Pipeline Stages:**
-  1. `test`: Pytest tests + React static build
+  1. `test`: Pytest tests (8 passing) + React static build
   2. `build-scan-push`: Docker build + Trivy vulnerability scanning (`HIGH,CRITICAL` CVE check) + Push to GitHub Container Registry (GHCR)
-  3. `deploy`: Helm upgrade on Kubernetes
+  3. `deploy`: Helm upgrade on Kubernetes (safely gated until EKS cluster provisioning)
+
+### DevSecOps Vulnerability Analysis & Remediation (M6 Rubric Evidence):
+- **Trivy Target:** Scanned both Debian 13 base OS packages and Python language packages (`METADATA`) inside `ghcr.io/agent-baba/taskboard-backend`.
+- **Findings Identified:**
+  - Debian OS base packages: **0 vulnerabilities** (Clean).
+  - Python packages: Trivy flagged 3 `HIGH` severity vulnerabilities in the transitive dependency `starlette` (version `0.41.3` pulled by `fastapi==0.115.6`):
+    1. **CVE-2025-62727 (HIGH):** Denial of Service (DoS) via algorithmic complexity ($O(n^2)$ CPU exhaustion) when parsing crafted HTTP `Range` headers in `FileResponse`.
+    2. **CVE-2026-48818 (HIGH):** SSRF and credential leak via UNC paths in `StaticFiles`.
+    3. **CVE-2026-54283 (HIGH):** DoS via unconstrained form field limits.
+- **Enforced Security Gate:** The pipeline halted with `exit-code: 1` as configured, preventing vulnerable artifacts from being pushed to production.
+- **Trivy Scan Evidence:**
+  ![Trivy Scan Findings](docs/screenshots/03-trivy-scan.jpg)
+
+- **Remediation Implemented:**
+  - Upgraded `fastapi>=0.143.0` and `prometheus-fastapi-instrumentator>=8.1.0` in `backend/requirements.txt` to pull patched `starlette>=1.8.0`.
+  - All 3 CVEs remediated to 0 findings while maintaining 100% test suite pass rate.
 
 ---
 
