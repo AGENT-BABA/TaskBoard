@@ -53,21 +53,23 @@ The following core fixes and production enhancements were implemented to ensure 
 > Updated `backend/requirements.txt` to `psycopg[binary]>=3.2.3` ensuring seamless native builds across Linux/WSL running Python 3.14 as well as standard Docker containers running Python 3.12.
 
 > [!IMPORTANT]
-> ### 6. 🛡️ DevSecOps Automated Vulnerability Gate & Remediation
+> ### 6. 🛡️ DevSecOps Automated Vulnerability Gate & Remediation (Backend & Frontend)
 > **Problem Identified:**
-> During CI/CD execution, Aqua Security Trivy scanned `ghcr.io/agent-baba/taskboard-backend` and caught 3 `HIGH` severity CVEs in `starlette` (version `0.41.3` pulled by `fastapi==0.115.6`):
-> 1. `CVE-2025-62727`: Denial of Service (DoS) via quadratic CPU exhaustion ($O(n^2)$) when parsing HTTP Range headers.
-> 2. `CVE-2026-48818`: SSRF and credential leak via UNC paths in `StaticFiles`.
-> 3. `CVE-2026-54283`: DoS via unconstrained form field limits.
+> During CI/CD execution, Aqua Security Trivy scanned both container images and enforced strict security gates with `exit-code: 1`:
+> 1. **Backend (`taskboard-backend`):** Caught 3 `HIGH` severity CVEs in transitive dependency `starlette` (version `0.41.3` bundled with `fastapi==0.115.6`):
+>    - `CVE-2025-62727`: DoS via quadratic CPU exhaustion ($O(n^2)$) in HTTP Range headers.
+>    - `CVE-2026-48818`: SSRF and credential leak via UNC paths in `StaticFiles`.
+>    - `CVE-2026-54283`: DoS via unconstrained form field limits.
+> 2. **Frontend (`taskboard-frontend`):** Caught 43 vulnerabilities (41 `HIGH`, 2 `CRITICAL`) in base image `nginx:1.27-alpine` (Alpine 3.21.3) across outdated system libraries (`libcrypto3`, `libssl3`, `musl`, `libexpat`, `c-ares`, `libpng`, `libxml2`, `zlib`).
+> 3. **Workflow Dependency:** The starter template had `aquasecurity/trivy-action@0.30.0` which failed because upstream maintainers revoked and deleted `setup-trivy@v0.2.2`.
 >
-> Because the pipeline enforced `exit-code: 1`, the build halted immediately, preventing vulnerable artifacts from being pushed to the container registry.
->
-> Additionally, the starter workflow had `aquasecurity/trivy-action@0.30.0` which failed because upstream maintainers revoked and deleted `setup-trivy@v0.2.2` during a security cleanup.
+> In both cases, the pipeline halted with `exit-code: 1`, preventing vulnerable artifacts from reaching the container registry.
 >
 > **Production Fix Implemented:**
-> 1. Upgraded `.github/workflows/ci-cd.yml` to `aquasecurity/trivy-action@v0.36.0`, which pins its sub-actions to immutable commit hashes.
-> 2. Remediated the dependencies in `backend/requirements.txt`: upgraded `fastapi>=0.143.0` and `prometheus-fastapi-instrumentator>=8.1.0`, pulling patched `starlette>=1.8.0`.
-> 3. Verified zero HIGH/CRITICAL vulnerabilities remaining while maintaining 100% test pass rate across all 8 Pytest tests.
+> 1. Upgraded `.github/workflows/ci-cd.yml` to `aquasecurity/trivy-action@v0.36.0` (pinned to immutable commit hashes).
+> 2. **Backend Remediation:** Upgraded `fastapi>=0.143.0` and `prometheus-fastapi-instrumentator>=8.1.0` in `backend/requirements.txt` to pull patched `starlette>=1.8.0` (0 CVEs).
+> 3. **Frontend Remediation:** Added `RUN apk upgrade --no-cache` to `frontend/Dockerfile` to upgrade all 22 system packages to their latest patched releases (0 CVEs).
+> 4. Verified zero HIGH/CRITICAL vulnerabilities remaining while maintaining 100% test pass rate across all 8 Pytest tests.
 
 ---
 
@@ -142,20 +144,25 @@ The following core fixes and production enhancements were implemented to ensure 
   3. `deploy`: Helm upgrade on Kubernetes (safely gated until EKS cluster provisioning)
 
 ### DevSecOps Vulnerability Analysis & Remediation (M6 Rubric Evidence):
-- **Trivy Target:** Scanned both Debian 13 base OS packages and Python language packages (`METADATA`) inside `ghcr.io/agent-baba/taskboard-backend`.
-- **Findings Identified:**
-  - Debian OS base packages: **0 vulnerabilities** (Clean).
-  - Python packages: Trivy flagged 3 `HIGH` severity vulnerabilities in the transitive dependency `starlette` (version `0.41.3` pulled by `fastapi==0.115.6`):
-    1. **CVE-2025-62727 (HIGH):** Denial of Service (DoS) via algorithmic complexity ($O(n^2)$ CPU exhaustion) when parsing crafted HTTP `Range` headers in `FileResponse`.
-    2. **CVE-2026-48818 (HIGH):** SSRF and credential leak via UNC paths in `StaticFiles`.
-    3. **CVE-2026-54283 (HIGH):** DoS via unconstrained form field limits.
-- **Enforced Security Gate:** The pipeline halted with `exit-code: 1` as configured, preventing vulnerable artifacts from being pushed to production.
-- **Trivy Scan Evidence:**
-  ![Trivy Scan Findings](docs/screenshots/03-trivy-scan.jpg)
+- **Trivy Targets:** Scanned both backend (`ghcr.io/agent-baba/taskboard-backend`) and frontend (`ghcr.io/agent-baba/taskboard-frontend`) container images.
 
-- **Remediation Implemented:**
-  - Upgraded `fastapi>=0.143.0` and `prometheus-fastapi-instrumentator>=8.1.0` in `backend/requirements.txt` to pull patched `starlette>=1.8.0`.
-  - All 3 CVEs remediated to 0 findings while maintaining 100% test suite pass rate.
+#### 1. Backend Scan Findings & Remediation:
+- **Findings:** Debian 13 base OS was completely clean (0 findings). In Python packages, Trivy identified 3 `HIGH` severity CVEs in `starlette` (`0.41.3`):
+  - **CVE-2025-62727 (HIGH):** Denial of Service via quadratic CPU exhaustion in Range header parsing.
+  - **CVE-2026-48818 (HIGH):** SSRF and credential leak in `StaticFiles`.
+  - **CVE-2026-54283 (HIGH):** DoS via unconstrained form field limits.
+- **Evidence:**
+  ![Trivy Backend Scan](docs/screenshots/03-trivy-backend-scan.jpg)
+- **Fix:** Bumped `fastapi>=0.143.0` and `prometheus-fastapi-instrumentator>=8.1.0` in `backend/requirements.txt`, pulling patched `starlette>=1.8.0`.
+
+#### 2. Frontend Scan Findings & Remediation:
+- **Findings:** Alpine 3.21.3 in `nginx:1.27-alpine` contained 43 vulnerabilities (41 `HIGH`, 2 `CRITICAL`) in outdated base system libraries (`libcrypto3`, `libssl3`, `musl`, `libexpat`, `c-ares`, `libpng`, `libxml2`, `zlib`).
+  - **Criticals:** `CVE-2026-31789` (OpenSSL heap buffer overflow on 32-bit systems) in `libcrypto3` and `libssl3`.
+  - **Highs:** Use-after-free in `c-ares` (`CVE-2026-33630`), heap overflow in `libpng` (`CVE-2025-64720`), XML DoS in `libxml2` (`CVE-2025-32414`), and buffer overflow in `zlib` (`CVE-2026-22184`).
+- **Evidence:**
+  ![Trivy Frontend Scan](docs/screenshots/03-trivy-frontend-scan.jpg)
+- **Fix:** Added `RUN apk upgrade --no-cache` in `frontend/Dockerfile` which automatically fetches the latest security patches for all 22 system packages from Alpine's package repositories.
+- **Enforced Security Gate:** The pipeline halted on each scan with `exit-code: 1` as configured, proving that vulnerable artifacts were successfully blocked from deployment until fully patched.
 
 ---
 
