@@ -1,7 +1,7 @@
 frontend:
-  image: ghcr.io/YOUR_ORG/taskboard-frontend
+  image: ghcr.io/agent-baba/taskboard-frontend
 backend:
-  image: ghcr.io/YOUR_ORG/taskboard-backend
+  image: ghcr.io/agent-baba/taskboard-backend
 replicaCount: 2
 ingress:
   enabled: true

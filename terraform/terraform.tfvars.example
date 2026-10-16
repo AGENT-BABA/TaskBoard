@@ -1,0 +1,6 @@
+# Example Terraform variable definitions for TaskBoard
+# Copy this file to terraform.tfvars to override default values.
+# DO NOT commit terraform.tfvars containing sensitive secrets to Git.
+
+aws_region   = "ap-southeast-2"
+cluster_name = "taskboard-eks"

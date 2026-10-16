@@ -1,9 +1,9 @@
 frontend:
-  image: ghcr.io/YOUR_ORG/taskboard-frontend
-  tag: latest
+  image: ghcr.io/agent-baba/taskboard-frontend
+  tag: eeaca334b7a8277fbcdbc3f6082ba747bb507aae
 backend:
-  image: ghcr.io/YOUR_ORG/taskboard-backend
-  tag: latest
+  image: ghcr.io/agent-baba/taskboard-backend
+  tag: eeaca334b7a8277fbcdbc3f6082ba747bb507aae
 replicaCount: 2
 namespace: taskboard
 imagePullSecrets: []
@@ -12,8 +12,10 @@ postgres:
   database: taskboard
   username: taskboard
   password: taskboard
+  persistence:
+    enabled: false
 ingress:
-  enabled: false
+  enabled: true
   host: taskboard.local
 hpa:
   enabled: true

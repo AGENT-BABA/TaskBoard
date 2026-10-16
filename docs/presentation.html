@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TaskBoard — DevOps Capstone Presentation</title>
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #090e17;
+      --card-bg: #131c2e;
+      --card-inner: #0d1524;
+      --border: #23334d;
+      --text-white: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent-cyan: #06b6d4;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: #020617;
+      color: var(--text-white);
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 12px;
+      overflow: hidden;
+    }
+
+    /* Extra Wide 16:9 Deck Container */
+    .deck-container {
+      position: relative;
+      width: 96vw;
+      max-width: 1560px;
+      height: 90vh;
+      max-height: 880px;
+      background: var(--bg-dark);
+      border-radius: 14px;
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.9);
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    .slide {
+      display: none;
+      width: 100%;
+      height: 100%;
+      padding: 26px 40px;
+      flex-direction: column;
+    }
+
+    .slide.active {
+      display: flex;
+      animation: fadeIn 0.25s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Header */
+    .slide-category {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--accent-cyan);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 4px;
+    }
+
+    .slide-title {
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--text-white);
+      letter-spacing: -0.5px;
+      margin-bottom: 12px;
+    }
+
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, var(--border) 0%, rgba(35, 51, 77, 0.2) 100%);
+      margin-bottom: 18px;
+    }
+
+    /* Split Content */
+    .split-layout {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 26px;
+      flex: 1;
+      min-height: 0;
+    }
+
+    /* Left Sidebar: Space-Between Distributes Points Across Full Height */
+    .bullet-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px 18px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between; /* Fills entire height with zero bottom empty space */
+      gap: 12px;
+    }
+
+    .bullet-item {
+      background: var(--card-inner);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent-cyan);
+      border-radius: 8px;
+      padding: 16px 18px;
+      font-size: 13.5px;
+      line-height: 1.5;
+      color: #e2e8f0;
+      transition: all 0.2s ease;
+    }
+
+    .bullet-item:hover {
+      background: #16243d;
+      border-left-color: var(--accent-green);
+      transform: translateX(2px);
+    }
+
+    .bullet-item strong {
+      color: var(--accent-cyan);
+      display: block;
+      margin-bottom: 4px;
+      font-size: 14.5px;
+      font-weight: 700;
+      letter-spacing: -0.2px;
+    }
+
+    /* Expansive Image Card */
+    .image-card {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      overflow: hidden;
+      cursor: zoom-in;
+    }
+
+    .image-card:hover .zoom-badge {
+      opacity: 1;
+    }
+
+    .zoom-badge {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: rgba(9, 14, 23, 0.85);
+      backdrop-filter: blur(4px);
+      color: var(--accent-cyan);
+      border: 1px solid var(--accent-cyan);
+      padding: 5px 12px;
+      border-radius: 16px;
+      font-size: 11.5px;
+      font-weight: 600;
+      opacity: 0.75;
+      transition: opacity 0.2s;
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    .image-card img {
+      width: 100%;
+      height: 100%;
+      max-height: calc(90vh - 170px);
+      object-fit: contain;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      transition: transform 0.2s;
+    }
+
+    .image-card:hover img {
+      transform: scale(1.005);
+    }
+
+    .image-caption {
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--text-muted);
+      text-align: center;
+      font-weight: 500;
+    }
+
+    /* Slider Component Styles */
+    .slider-nav {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 6px;
+      background: rgba(9, 14, 23, 0.85);
+      padding: 4px 8px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      z-index: 10;
+    }
+
+    .slider-tab {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: inherit;
+    }
+
+    .slider-tab:hover {
+      color: var(--text-white);
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .slider-tab.active {
+      background: var(--accent-cyan);
+      color: #020617;
+      font-weight: 700;
+    }
+
+    .slider-arrow-btn {
+      background: rgba(19, 28, 46, 0.9);
+      border: 1px solid var(--border);
+      color: var(--text-white);
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 10px;
+      transition: all 0.2s;
+    }
+
+    .slider-arrow-btn:hover {
+      background: var(--accent-cyan);
+      color: #020617;
+      border-color: var(--accent-cyan);
+    }
+
+    /* Slide 1 Hero */
+    .hero-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 54px;
+      margin: auto;
+      width: 100%;
+      max-width: 1000px;
+      text-align: left;
+    }
+
+    .hero-badge {
+      display: inline-block;
+      background: rgba(6, 182, 212, 0.12);
+      color: var(--accent-cyan);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      margin-bottom: 18px;
+      border: 1px solid rgba(6, 182, 212, 0.3);
+    }
+
+    .hero-title {
+      font-size: 42px;
+      font-weight: 800;
+      line-height: 1.2;
+      letter-spacing: -1px;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, #ffffff 40%, #94a3b8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-desc {
+      font-size: 18px;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-bottom: 32px;
+      font-weight: 400;
+    }
+
+    .hero-meta {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      border-top: 1px solid var(--border);
+      padding-top: 24px;
+      font-size: 14.5px;
+      color: var(--accent-green);
+    }
+
+    /* Grid for Slide 2 */
+    .stages-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .stage-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-top: 4px solid var(--accent-cyan);
+      border-radius: 12px;
+      padding: 20px 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: all 0.25s ease;
+    }
+
+    .stage-card:hover {
+      background: #16243d;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+    }
+
+    .stage-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 2px;
+    }
+
+    .stage-badge {
+      background: rgba(6, 182, 212, 0.15);
+      color: var(--accent-cyan);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 6px;
+      border: 1px solid rgba(6, 182, 212, 0.3);
+      letter-spacing: 0.5px;
+    }
+
+    .stage-title {
+      font-size: 18.5px;
+      font-weight: 800;
+      color: var(--text-white);
+      letter-spacing: -0.3px;
+    }
+
+    .stage-tech-tag {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--accent-green);
+      margin-bottom: 4px;
+    }
+
+    .stage-desc-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .stage-desc-item {
+      font-size: 13.5px;
+      line-height: 1.5;
+      color: #cbd5e1;
+      display: flex;
+      align-items: flex-start;
+      gap: 7px;
+    }
+
+    .stage-desc-item span {
+      color: var(--accent-cyan);
+      font-weight: bold;
+    }
+
+    /* Conclusion Cards for Slides 10 & 11 (Fills Full Height) */
+    .conclusion-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 16px;
+      min-height: 0;
+    }
+
+    .conclusion-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-left: 5px solid var(--accent-cyan);
+      border-radius: 12px;
+      padding: 22px 28px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      flex: 1;
+      transition: all 0.2s ease;
+    }
+
+    .conclusion-card:hover {
+      background: #172338;
+      border-left-color: var(--accent-green);
+      transform: translateX(3px);
+    }
+
+    .conclusion-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .conclusion-title {
+      font-size: 17.5px;
+      font-weight: 800;
+      color: var(--accent-cyan);
+      letter-spacing: -0.3px;
+    }
+
+    .conclusion-tag {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--accent-green);
+      font-size: 11.5px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 12px;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .conclusion-text {
+      font-size: 15px;
+      line-height: 1.65;
+      color: #e2e8f0;
+    }
+
+    /* Navigation Toolbar */
+    .nav-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 96vw;
+      max-width: 1560px;
+      margin-top: 12px;
+      padding: 0 4px;
+    }
+
+    .nav-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      color: var(--text-white);
+      padding: 9px 22px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 13.5px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .nav-btn:hover {
+      background: #1e293b;
+      border-color: var(--accent-cyan);
+    }
+
+    .slide-counter {
+      font-size: 13.5px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    /* FULL-SCREEN LIGHTBOX ZOOM MODAL */
+    .lightbox {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(2, 6, 23, 0.95);
+      backdrop-filter: blur(8px);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      cursor: zoom-out;
+    }
+
+    .lightbox.active {
+      display: flex;
+      animation: fadeIn 0.2s ease-in-out;
+    }
+
+    .lightbox img {
+      max-width: 95vw;
+      max-height: 90vh;
+      object-fit: contain;
+      border-radius: 8px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.95);
+      border: 1px solid var(--border);
+    }
+
+    .lightbox-hint {
+      margin-top: 14px;
+      color: var(--accent-cyan);
+      font-size: 13px;
+      font-weight: 600;
+      background: rgba(15, 23, 42, 0.85);
+      padding: 6px 18px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="deck-container">
+    <!-- SLIDE 1 -->
+    <div class="slide active">
+      <div class="hero-card">
+        <div class="hero-badge">FINAL CAPSTONE PRESENTATION</div>
+        <h1 class="hero-title">TaskBoard: Cloud-Native DevOps Architecture</h1>
+        <p class="hero-desc">End-to-End Enterprise Delivery: FastAPI, React, CI/CD, DevSecOps, AWS EKS, Helm & Prometheus/Grafana</p>
+        <div class="hero-meta">
+          <div>👨‍💻 <strong>Author:</strong> Krushna Sonawane</div>
+          <div>🔗 <strong>GitHub:</strong> github.com/AGENT-BABA/TaskBoard</div>
+          <div>☁️ <strong>Environment:</strong> Docker, AWS EKS & GitOps</div>
+          <div>🌏 <strong>AWS Region:</strong> ap-southeast-2 (Sydney)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 2 -->
+    <div class="slide">
+      <div class="slide-category">OVERVIEW • FULL DELIVERY PIPELINE</div>
+      <div class="slide-title">End-to-End DevOps Lifecycle Architecture</div>
+      <div class="divider"></div>
+      <div class="stages-grid">
+        <div class="stage-card">
+          <div class="stage-header-row">
+            <div class="stage-title">1. Development</div>
+            <div class="stage-badge">MODULE M1 & M4</div>
+          </div>
+          <div class="stage-tech-tag">FastAPI • React + Vite • PostgreSQL 16</div>
+          <div class="stage-desc-list">
+            <div class="stage-desc-item"><span>✔</span> FastAPI backend implementing 4+ REST API routes with Alembic schema migrations.</div>
+            <div class="stage-desc-item"><span>✔</span> Multi-stage Dockerfiles enforcing non-root security (<code>appuser:10001</code>).</div>
+            <div class="stage-desc-item"><span>✔</span> Resolved PostgreSQL startup race condition with native Docker TCP healthchecks.</div>
+          </div>
+        </div>
+        <div class="stage-card">
+          <div class="stage-header-row">
+            <div class="stage-title">2. Testing (CI)</div>
+            <div class="stage-badge">MODULE M2</div>
+          </div>
+          <div class="stage-tech-tag">Automated Pytest • SQLite Mocking</div>
+          <div class="stage-desc-list">
+            <div class="stage-desc-item"><span>✔</span> 8/8 comprehensive test cases covering CRUD, health endpoints, and payload validation.</div>
+            <div class="stage-desc-item"><span>✔</span> Isolated in-memory SQLite database (<code>conftest.py</code>) preventing database contamination.</div>
+            <div class="stage-desc-item"><span>✔</span> Strict CI quality gate: pipeline instantly halts if any unit or integration test fails.</div>
+          </div>
+        </div>
+        <div class="stage-card">
+          <div class="stage-header-row">
+            <div class="stage-title">3. DevSecOps</div>
+            <div class="stage-badge">MODULE M5 & M6</div>
+          </div>
+          <div class="stage-tech-tag">GitHub Actions • Trivy • GHCR</div>
+          <div class="stage-desc-list">
+            <div class="stage-desc-item"><span>✔</span> Automated CI/CD pipeline triggered on push to <code>main</code> branch.</div>
+            <div class="stage-desc-item"><span>✔</span> Container vulnerability scanning failing builds on HIGH/CRITICAL CVEs.</div>
+            <div class="stage-desc-item"><span>✔</span> Starlette patched to 0.45.3 and Alpine base hardened; published with immutable Git SHA tags.</div>
+          </div>
+        </div>
+        <div class="stage-card">
+          <div class="stage-header-row">
+            <div class="stage-title">4. Infrastructure</div>
+            <div class="stage-badge">MODULE M7</div>
+          </div>
+          <div class="stage-tech-tag">Terraform IaC • AWS VPC & EKS</div>
+          <div class="stage-desc-list">
+            <div class="stage-desc-item"><span>✔</span> Declarative HCL provisioning VPC with multi-AZ public/private subnets in Sydney.</div>
+            <div class="stage-desc-item"><span>✔</span> Managed EKS cluster with cost-optimized EC2 <code>t3.small</code> worker node group.</div>
+            <div class="stage-desc-item"><span>✔</span> Zero-drift lifecycle with clean terraform destroy ($0 runaway cloud cost verified).</div>
+          </div>
+        </div>
+        <div class="stage-card">
+          <div class="stage-header-row">
+            <div class="stage-title">5. Kubernetes</div>
+            <div class="stage-badge">MODULE M8</div>
+          </div>
+          <div class="stage-tech-tag">Helm Package • Ingress • HPA</div>
+          <div class="stage-desc-list">
+            <div class="stage-desc-item"><span>✔</span> Templated Helm chart (<code>helm/taskboard</code>) managing complete microservice stack.</div>
+            <div class="stage-desc-item"><span>✔</span> Dual-replica backend and frontend deployments in dedicated <code>taskboard</code> namespace.</div>
+            <div class="stage-desc-item"><span>✔</span> NGINX Ingress path routing and Horizontal Pod Autoscaler dynamic scaling.</div>
+          </div>
+        </div>
+        <div class="stage-card">
+          <div class="stage-header-row">
+            <div class="stage-title">6. Observability</div>
+            <div class="stage-badge">MODULE M9</div>
+          </div>
+          <div class="stage-tech-tag">Prometheus • Grafana Telemetry</div>
+          <div class="stage-desc-list">
+            <div class="stage-desc-item"><span>✔</span> FastAPI <code>/metrics</code> endpoint instrumented via prometheus-fastapi-instrumentator.</div>
+            <div class="stage-desc-item"><span>✔</span> Prometheus automated target discovery scraping continuously with 100% UP health.</div>
+            <div class="stage-desc-item"><span>✔</span> Live 4-panel Executive Dashboard auto-provisioned as code across Docker and EKS.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 3 -->
+    <div class="slide">
+      <div class="slide-category">DOCKER & APPLICATION STACK</div>
+      <div class="slide-title">Application Architecture & Containerization</div>
+      <div class="divider"></div>
+      <div class="split-layout">
+        <div class="bullet-card">
+          <div class="bullet-item">
+            <strong>Modern Full-Stack Stack</strong>
+            FastAPI Python backend, React + Vite frontend, and PostgreSQL 16 relational database with Alembic migrations.
+          </div>
+          <div class="bullet-item">
+            <strong>Container Security Hardening</strong>
+            Multi-stage Dockerfiles with separate build & runtime stages. Non-root user execution (`appuser:10001`).
+          </div>
+          <div class="bullet-item">
+            <strong>Race Condition Solved</strong>
+            Solved PostgreSQL initdb startup delay using native Docker TCP healthcheck and `condition: service_healthy`.
+          </div>
+          <div class="bullet-item">
+            <strong>Local Orchestration</strong>
+            Single-command deployment with `docker compose up --build` connecting backend, frontend, postgres, and monitoring.
+          </div>
+        </div>
+        <div class="image-card">
+          <div class="zoom-badge">🔍 Click to Zoom Full-Screen</div>
+          <img src="../docs/screenshots/01-TaskBoard-DashBoard.jpg" alt="TaskBoard UI">
+          <div class="image-caption">Verified live TaskBoard UI running locally on localhost:3000</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 4 -->
+    <div class="slide">
+      <div class="slide-category">PYTEST & SQLITE MOCK ISOLATION</div>
+      <div class="slide-title">Automated Testing & Code Quality Gates</div>
+      <div class="divider"></div>
+      <div class="split-layout">
+        <div class="bullet-card">
+          <div class="bullet-item">
+            <strong>Pytest Test Suite</strong>
+            8 comprehensive unit and integration tests covering CRUD operations, health endpoints, and payload validation.
+          </div>
+          <div class="bullet-item">
+            <strong>Database Isolation</strong>
+            Tests use an in-memory SQLite database (`conftest.py`), preventing contamination of production database.
+          </div>
+          <div class="bullet-item">
+            <strong>Deterministic Results</strong>
+            100% test pass rate executed in ~0.6 seconds before any container build or push.
+          </div>
+          <div class="bullet-item">
+            <strong>CI Quality Gate</strong>
+            Pytest is integrated into GitHub Actions — any failing test immediately blocks the CI/CD pipeline.
+          </div>
+        </div>
+        <div class="image-card">
+          <div class="zoom-badge">🔍 Click to Zoom Full-Screen</div>
+          <img src="../docs/screenshots/02-pytest-passing.jpg" alt="Pytest Passing">
+          <div class="image-caption">Pytest terminal output showing 8/8 tests passing in SQLite test DB</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 5 -->
+    <div class="slide">
+      <div class="slide-category">GITHUB ACTIONS, TRIVY & GHCR</div>
+      <div class="slide-title">CI/CD Pipeline & Container Security Scans</div>
+      <div class="divider"></div>
+      <div class="split-layout">
+        <div class="bullet-card">
+          <div class="bullet-item">
+            <strong>Automated Pipeline</strong>
+            Triggered on push to `main` branch. Automates tests, builds, CVE scans, and image pushes.
+          </div>
+          <div class="bullet-item">
+            <strong>DevSecOps with Trivy</strong>
+            Vulnerability scans on backend & frontend images. Configured to fail on HIGH/CRITICAL severity.
+          </div>
+          <div class="bullet-item">
+            <strong>CVE Remediation</strong>
+            Patched Starlette CVE (upgraded to 0.45.3) and Alpine base vulnerabilities to achieve clean scans.
+          </div>
+          <div class="bullet-item">
+            <strong>Immutable SHA Tagging</strong>
+            Images published to GHCR tagged with Git commit SHA for full traceability and rollback capability.
+          </div>
+        </div>
+        <div class="image-card">
+          <div class="zoom-badge">🔍 Click to Zoom Full-Screen</div>
+          <img src="../docs/screenshots/04-github-actions-success.jpg" alt="GitHub Actions">
+          <div class="image-caption">GitHub Actions workflow runs passing all build, test, and security jobs</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 6 -->
+    <div class="slide">
+      <div class="slide-category">TERRAFORM CLOUD INFRASTRUCTURE</div>
+      <div class="slide-title">Infrastructure as Code: AWS EKS & VPC</div>
+      <div class="divider"></div>
+      <div class="split-layout">
+        <div class="bullet-card">
+          <div class="bullet-item">
+            <strong>Terraform IaC</strong>
+            Declarative HCL scripts provisioning full AWS infrastructure in Sydney (`ap-southeast-2`).
+          </div>
+          <div class="bullet-item">
+            <strong>VPC & Subnet Topology</strong>
+            Custom VPC with multi-AZ public and private subnets, internet gateways, and routing tables.
+          </div>
+          <div class="bullet-item">
+            <strong>Managed EKS Cluster</strong>
+            Kubernetes cluster with managed EC2 `t3.small` worker nodes configured for optimal cost-efficiency.
+          </div>
+          <div class="bullet-item">
+            <strong>Enterprise SCP Compliance</strong>
+            Configured `enable_irsa = false` and clean IAM roles to satisfy strict cloud boundary permissions.
+          </div>
+        </div>
+        <div class="image-card">
+          <div class="zoom-badge">🔍 Click to Zoom Full-Screen</div>
+          <img src="../docs/screenshots/07-aws-eks-console.jpg" alt="AWS EKS Console">
+          <div class="image-caption">AWS EKS Management Console confirming active taskboard-eks cluster</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 7 -->
+    <div class="slide">
+      <div class="slide-category">PRODUCTION WORKLOADS & ROUTING</div>
+      <div class="slide-title">Kubernetes Orchestration & Helm Packaging</div>
+      <div class="divider"></div>
+      <div class="split-layout">
+        <div class="bullet-card">
+          <div class="bullet-item">
+            <strong>Helm Packaging</strong>
+            Clean templated Helm chart (`helm/taskboard`) managing Deployments, Services, Ingress, and HPA.
+          </div>
+          <div class="bullet-item">
+            <strong>High Availability</strong>
+            2x backend replicas and 2x frontend replicas deployed in isolated namespace `taskboard`.
+          </div>
+          <div class="bullet-item">
+            <strong>Ingress Traffic Routing</strong>
+            NGINX Ingress routing root path `/` to frontend and `/api` to backend microservice.
+          </div>
+          <div class="bullet-item">
+            <strong>Dynamic Autoscaling</strong>
+            HPA configured for CPU-based dynamic autoscaling under heavy user traffic loads.
+          </div>
+        </div>
+        <div class="image-card">
+          <div class="zoom-badge">🔍 Click to Zoom Full-Screen</div>
+          <img src="../docs/screenshots/10-kubectl-pods-running.jpg" alt="Kubectl Pods">
+          <div class="image-caption">Kubectl output confirming all backend, frontend, and database pods Running</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 8 -->
+    <div class="slide">
+      <div class="slide-category">APPLICATION TELEMETRY & SCRAPING</div>
+      <div class="slide-title">Observability: Metrics Telemetry & Prometheus</div>
+      <div class="divider"></div>
+      <div class="split-layout">
+        <div class="bullet-card">
+          <div class="bullet-item">
+            <strong>Metrics Instrumentation</strong>
+            FastAPI instrumented with `prometheus-fastapi-instrumentator` exposing `/metrics`.
+          </div>
+          <div class="bullet-item">
+            <strong>Telemetry Captured</strong>
+            Request rates, response duration histograms, process CPU, and memory utilization.
+          </div>
+          <div class="bullet-item">
+            <strong>Prometheus Discovery</strong>
+            Continuous automated scrape every 5s discovering `taskboard-backend`.
+          </div>
+          <div class="bullet-item">
+            <strong>Target Health Verified</strong>
+            Prometheus UI shows 100% active targets in `UP` state with zero scrape errors.
+          </div>
+        </div>
+        <div class="image-card">
+          <div class="zoom-badge">🔍 Click to Zoom Full-Screen</div>
+          <img id="prom-img" src="../docs/screenshots/15-prometheus-targets-01.jpg" alt="Prometheus Targets">
+          <div class="slider-nav" onclick="event.stopPropagation()">
+            <button class="slider-arrow-btn" onclick="switchPromSlide(currentPromIdx - 1, event)">❮</button>
+            <button class="slider-tab active" onclick="switchPromSlide(0, event)">1. Cluster Scrapes</button>
+            <button class="slider-tab" onclick="switchPromSlide(1, event)">2. Node Services</button>
+            <button class="slider-tab" onclick="switchPromSlide(2, event)">3. Backend (UP)</button>
+            <button class="slider-arrow-btn" onclick="switchPromSlide(currentPromIdx + 1, event)">❯</button>
+          </div>
+          <div class="image-caption" id="prom-caption">Prometheus Target Health (1/3) — Cluster Services (CoreDNS, API Server)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 9 -->
+    <div class="slide">
+      <div class="slide-category">REAL-TIME VISUAL OPERATIONS</div>
+      <div class="slide-title">Executive Telemetry Dashboard (Grafana)</div>
+      <div class="divider"></div>
+      <div class="split-layout">
+        <div class="bullet-card">
+          <div class="bullet-item">
+            <strong>p95 Response Latency</strong>
+            Radial gauge tracking 95th-percentile response time (`95 ms`) with green/orange/red SLA markers.
+          </div>
+          <div class="bullet-item">
+            <strong>Total API Requests</strong>
+            Live KPI stat card showing total processed requests (`324`) with an area trend sparkline.
+          </div>
+          <div class="bullet-item">
+            <strong>Status Code Breakdown</strong>
+            Donut chart detailing HTTP 2xx (100%) vs 4xx/5xx error rates with table metrics.
+          </div>
+          <div class="bullet-item">
+            <strong>Throughput by Endpoint</strong>
+            Multi-route time-series graph visualizing request rates across `/api/tasks`, `/health`, `/metrics`.
+          </div>
+        </div>
+        <div class="image-card">
+          <div class="zoom-badge">🔍 Click to Zoom Full-Screen</div>
+          <img src="../docs/screenshots/16-grafana-dashboard-remake.jpg" alt="Grafana Dashboard">
+          <div class="image-caption">TaskBoard Executive Telemetry Dashboard featuring real-time multi-panel telemetry</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 10 -->
+    <div class="slide">
+      <div class="slide-category">TECHNICAL INNOVATIONS & PROBLEM-SOLVING</div>
+      <div class="slide-title">Core Engineering Challenges & Architecture Solutions</div>
+      <div class="divider"></div>
+      <div class="conclusion-container">
+        <div class="conclusion-card">
+          <div class="conclusion-card-header">
+            <div class="conclusion-title">1. PostgreSQL Initialization Race Condition Resolution (Zero Boot Failure)</div>
+            <div class="conclusion-tag">Container Reliability</div>
+          </div>
+          <div class="conclusion-text">
+            In multi-container stacks, Docker flags dependent containers as 'Started' upon process execution before PostgreSQL creates cluster files and opens TCP port 5432. This caused intermittent <code style="color: #f43f5e; background: rgba(244,63,94,0.1); padding: 2px 6px; border-radius: 4px;">psycopg.OperationalError: connection refused</code> crashes during initial database migrations. Resolved by implementing a native Docker TCP container healthcheck (<code style="color: #38bdf8;">pg_isready -U taskboard -d taskboard</code>) paired with <code style="color: #38bdf8;">condition: service_healthy</code>, ensuring guaranteed deterministic startup across local development and CI pipelines.
+          </div>
+        </div>
+        <div class="conclusion-card">
+          <div class="conclusion-card-header">
+            <div class="conclusion-title">2. Proactive DevSecOps & Container CVE Remediation</div>
+            <div class="conclusion-tag">Security & Compliance</div>
+          </div>
+          <div class="conclusion-text">
+            Standard container base images and dependencies often contain latent vulnerabilities. Integrated Trivy vulnerability scanning directly into the GitHub Actions CI pipeline, enforcing automated build failures on HIGH or CRITICAL CVEs. Remediated Starlette CVE vulnerabilities by upgrading the library to <code style="color: #38bdf8;">0.45.3</code> and hardened Alpine runtime packages, producing clean, production-grade container artifacts published to GHCR with immutable Git commit SHA tags.
+          </div>
+        </div>
+        <div class="conclusion-card">
+          <div class="conclusion-card-header">
+            <div class="conclusion-title">3. Universal GitOps Dashboard Provisioning (Docker + Kubernetes Parity)</div>
+            <div class="conclusion-tag">Telemetry as Code</div>
+          </div>
+          <div class="conclusion-text">
+            Custom telemetry dashboards created via Grafana UI are typically stored in transient container storage, risking missing metrics when evaluated on clean machines. Engineered a GitOps dashboard-as-code strategy: Docker Compose mounts automated provisioning configs, while the Helm chart deploys the dashboard JSON as a Kubernetes <code style="color: #38bdf8;">ConfigMap</code> labeled <code style="color: #38bdf8;">grafana_dashboard: "1"</code>, auto-discovered by the Grafana sidecar on AWS EKS without manual intervention.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 11 -->
+    <div class="slide">
+      <div class="slide-category">CLOUD GOVERNANCE & PRODUCTION READINESS</div>
+      <div class="slide-title">Cloud Governance, Resilience & Capstone Takeaways</div>
+      <div class="divider"></div>
+      <div class="conclusion-container">
+        <div class="conclusion-card">
+          <div class="conclusion-card-header">
+            <div class="conclusion-title">1. Cloud Financial Governance & Verified Teardown ($0.00 Cost Leak)</div>
+            <div class="conclusion-tag">Cost Governance</div>
+          </div>
+          <div class="conclusion-text">
+            Managed cloud environments (EKS Control Plane, EC2 Worker Nodes, NAT Gateways, ELBs) incur continuous hourly infrastructure charges. Enforced strict Infrastructure-as-Code lifecycle management using Terraform. Following verified deployment testing and screenshot capture, executed an automated <code style="color: #38bdf8;">terraform destroy -auto-approve</code> and verified zero remaining resources via the AWS CLI (<code style="color: #f43f5e;">ResourceNotFoundException</code>), completely protecting cloud budgets.
+          </div>
+        </div>
+        <div class="conclusion-card">
+          <div class="conclusion-card-header">
+            <div class="conclusion-title">2. Enterprise Kubernetes High Availability & Dynamic Autoscaling</div>
+            <div class="conclusion-tag">Cloud Native Resilience</div>
+          </div>
+          <div class="conclusion-text">
+            Packaged the microservice architecture into a modular Helm chart (<code style="color: #38bdf8;">helm/taskboard</code>) featuring dual-replica backend and frontend deployments in dedicated namespace <code style="color: #38bdf8;">taskboard</code>. Configured NGINX Ingress path-based routing (<code style="color: #38bdf8;">/</code> to React frontend, <code style="color: #38bdf8;">/api</code> to FastAPI backend) and enabled Horizontal Pod Autoscaling (HPA) to automatically scale worker pods under dynamic CPU load thresholds.
+          </div>
+        </div>
+        <div class="conclusion-card">
+          <div class="conclusion-card-header">
+            <div class="conclusion-title">3. End-to-End Enterprise DevOps Delivery Pipeline</div>
+            <div class="conclusion-tag">Lifecycle Integration</div>
+          </div>
+          <div class="conclusion-text">
+            Successfully unified all isolated phases of modern software delivery—development, automated testing, containerization, DevSecOps scanning, cloud infrastructure provisioning, Kubernetes orchestration, and observability—into a reproducible, production-grade engineering workflow with complete auditability.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav-toolbar">
+    <button class="nav-btn" onclick="prevSlide()">◀ Previous</button>
+    <div class="slide-counter" id="slideNum">Slide 1 of 11</div>
+    <button class="nav-btn" onclick="nextSlide()">Next ▶</button>
+  </div>
+
+  <!-- FULL-SCREEN LIGHTBOX MODAL -->
+  <div id="lightbox" class="lightbox" onclick="closeLightbox()">
+    <img id="lightbox-img" src="" alt="Enlarged screenshot">
+    <div class="lightbox-hint">Click anywhere or press Esc to close zoom</div>
+  </div>
+
+  <script>
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.slide');
+    const slideNum = document.getElementById('slideNum');
+
+    function showSlide(index) {
+      slides[currentSlide].classList.remove('active');
+      currentSlide = (index + slides.length) % slides.length;
+      slides[currentSlide].classList.add('active');
+      slideNum.textContent = `Slide ${currentSlide + 1} of ${slides.length}`;
+    }
+
+    function nextSlide() { showSlide(currentSlide + 1); }
+    function prevSlide() { showSlide(currentSlide - 1); }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ') nextSlide();
+      if (e.key === 'ArrowLeft') prevSlide();
+    });
+
+    // Prometheus Targets Slider Logic
+    const promImages = [
+      {
+        src: "../docs/screenshots/15-prometheus-targets-01.jpg",
+        caption: "Prometheus Target Health (1/3) — Internal Cluster Scrapes (CoreDNS & API Server)"
+      },
+      {
+        src: "../docs/screenshots/15-prometheus-targets-02.jpg",
+        caption: "Prometheus Target Health (2/3) — Node & System Telemetry Endpoints"
+      },
+      {
+        src: "../docs/screenshots/15-prometheus-targets-03.jpg",
+        caption: "Prometheus Target Health (3/3) — taskboard-backend Target (Actively Scraping UP)"
+      }
+    ];
+
+    let currentPromIdx = 0;
+
+    function switchPromSlide(idx, event) {
+      if (event) event.stopPropagation();
+      currentPromIdx = (idx + promImages.length) % promImages.length;
+      const imgEl = document.getElementById("prom-img");
+      const captionEl = document.getElementById("prom-caption");
+      const tabs = document.querySelectorAll(".slider-tab");
+
+      imgEl.src = promImages[currentPromIdx].src;
+      captionEl.textContent = promImages[currentPromIdx].caption;
+
+      tabs.forEach((tab, i) => {
+        tab.classList.toggle("active", i === currentPromIdx);
+      });
+    }
+
+    // Lightbox zoom handlers
+    document.querySelectorAll('.image-card img').forEach(img => {
+      img.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const lb = document.getElementById('lightbox');
+        const lbImg = document.getElementById('lightbox-img');
+        lbImg.src = img.src;
+        lb.classList.add('active');
+      });
+    });
+
+    function closeLightbox() {
+      document.getElementById('lightbox').classList.remove('active');
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeLightbox();
+    });
+  </script>
+</body>
+</html>
