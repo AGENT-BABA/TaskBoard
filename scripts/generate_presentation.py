@@ -380,13 +380,14 @@ def create_deck():
         run_h.font.size = Pt(11)
         run_h.font.color.rgb = TEXT_WHITE
 
-    # Save Presentation to root
-    output_path = "TaskBoard_DevOps_Capstone_Presentation.pptx"
+    # Save Presentation to demo/
+    os.makedirs("demo", exist_ok=True)
+    output_path = os.path.join("demo", "TaskBoard_DevOps_Capstone_Presentation.pptx")
     try:
         prs.save(output_path)
         print(f"Presentation updated with 11 detailed slides: {output_path}")
     except PermissionError:
-        alt_path = "TaskBoard_DevOps_Capstone_Presentation_Updated.pptx"
+        alt_path = os.path.join("demo", "TaskBoard_DevOps_Capstone_Presentation_Updated.pptx")
         prs.save(alt_path)
         print(f"File locked by PowerPoint! Saved copy to: {alt_path}")
 

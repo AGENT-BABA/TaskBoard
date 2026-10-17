@@ -26,7 +26,7 @@ The table below compiles all verified deliverables across Modules M1 through M10
 | **M7** | **Terraform Infrastructure as Code** | [terraform/](terraform/) (`main.tf`, `variables.tf`, `outputs.tf`) | [Terraform Plan](docs/screenshots/06-terraform-plan.jpg), [EKS Console](docs/screenshots/07-aws-eks-console.jpg), [EC2 Nodes](docs/screenshots/08-aws-ec2-nodes.jpg) | Verified ✅ |
 | **M8** | **Kubernetes & Helm Deployment** | [helm/taskboard/](helm/taskboard/), [k8s/namespace.yaml](k8s/namespace.yaml) | [Kubectl Pods](docs/screenshots/10-kubectl-pods-running.jpg), [Services & HPA](docs/screenshots/11-kubectl-svc-hpa.jpg), [Helm List](docs/screenshots/12-helm-list.jpg), [Browser on EKS](docs/screenshots/13-browser-taskboard-eks.jpg) | Verified ✅ |
 | **M9** | **Observability (Prometheus & Grafana)** | [monitoring/](monitoring/) (`prometheus.yml`, `prometheus-values.yaml`, `grafana/`) | [Curl Metrics](docs/screenshots/14-curl-metrics.jpg), [Prometheus Targets](docs/screenshots/15-prometheus-targets-01.jpg), [Grafana Dashboard](docs/screenshots/16-grafana-dashboard-remake.jpg) | Verified ✅ |
-| **M10** | **Presentation & Project Documentation** | [README.md](README.md), [TESTED.md](TESTED.md), [Slide Deck (PPTX)](TaskBoard_DevOps_Capstone_Presentation.pptx), [Web Deck (HTML)](docs/presentation.html) | [Interactive Web Presentation](docs/presentation.html) | Verified ✅ |
+| **M10** | **Presentation & Project Documentation** | [demo/](demo/), [README.md](README.md), [TESTED.md](TESTED.md), [Slide Deck (PPTX)](demo/TaskBoard_DevOps_Capstone_Presentation.pptx), [Web Deck (HTML)](docs/presentation.html) | [Interactive Web Presentation](docs/presentation.html) | Verified ✅ |
 
 ---
 
@@ -376,7 +376,8 @@ The following core fixes and production enhancements were implemented to ensure 
 ## M10 — Final Presentation & Documentation
 
 ### 1. Presentation Deliverables & Formats
-- **PowerPoint Presentation Deck:** [TaskBoard_DevOps_Capstone_Presentation.pptx](TaskBoard_DevOps_Capstone_Presentation.pptx) — 11-slide enterprise presentation deck containing embedded screenshots for all modules M1–M10.
+- **Mandatory Submission Folder:** [demo/](demo/) — Submission folder containing the presentation slide deck and video walkthrough instructions per grading guidelines.
+- **PowerPoint Presentation Deck:** [demo/TaskBoard_DevOps_Capstone_Presentation.pptx](demo/TaskBoard_DevOps_Capstone_Presentation.pptx) — 11-slide enterprise presentation deck containing embedded screenshots for all modules M1–M10.
 - **Interactive Web Slide Deck:** [docs/presentation.html](docs/presentation.html) — Standalone interactive slide deck with keyboard arrow navigation, 1-click full-screen zoom (Lightbox), and Prometheus multi-view slider.
 - **Automated Deck Generator:** [scripts/generate_presentation.py](scripts/generate_presentation.py) — Python script utilizing `python-pptx` to programmatically build the deck.
 
