@@ -118,3 +118,8 @@ desktop.ini
 *.swp
 *.swo
 *~
+
+# Raw Media Recordings (> 100MB)
+*.mov
+demo/raw-recording*
+demo/*.mov

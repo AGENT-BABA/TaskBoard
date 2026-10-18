@@ -26,14 +26,14 @@
 | **M7** | **Terraform Infrastructure as Code** | [terraform/](terraform/) (`main.tf`, `variables.tf`, `outputs.tf`) | [Terraform Plan](docs/screenshots/06-terraform-plan.jpg), [EKS Console](docs/screenshots/07-aws-eks-console.jpg), [EC2 Nodes](docs/screenshots/08-aws-ec2-nodes.jpg) | Verified ✅ |
 | **M8** | **Kubernetes & Helm Deployment** | [helm/taskboard/](helm/taskboard/), [k8s/namespace.yaml](k8s/namespace.yaml) | [Kubectl Pods](docs/screenshots/10-kubectl-pods-running.jpg), [Services & HPA](docs/screenshots/11-kubectl-svc-hpa.jpg), [Helm List](docs/screenshots/12-helm-list.jpg), [Browser on EKS](docs/screenshots/13-browser-taskboard-eks.jpg) | Verified ✅ |
 | **M9** | **Observability (Prometheus & Grafana)** | [monitoring/](monitoring/) (`prometheus.yml`, `prometheus-values.yaml`, [monitoring/grafana/](monitoring/grafana/)) | [Curl Metrics](docs/screenshots/14-curl-metrics.jpg), [Prometheus Targets](docs/screenshots/15-prometheus-targets-01.jpg), [Grafana Dashboard](docs/screenshots/16-grafana-dashboard-remake.jpg) | Verified ✅ |
-| **M10** | **Presentation & Project Documentation** | [demo/](demo/), [README.md](README.md), [Slide Deck (PPTX)](demo/TaskBoard_DevOps_Capstone_Presentation.pptx), [Web Deck (HTML)](docs/presentation.html) | [Interactive Web Presentation](docs/presentation.html) | Verified ✅ |
+| **M10** | **Presentation & Project Documentation** | [demo/](demo/), [README.md](README.md), [Slide Deck (PPTX)](demo/TaskBoard_DevOps_Capstone_Presentation.pptx), [Web Deck (HTML)](docs/presentation.html) | [Live Video (MP4)](demo/presentation_video.mp4), [YouTube Stream](https://youtu.be/eweihmsbcKw), [Interactive Web Deck](docs/presentation.html) | Verified ✅ |
 
 ---
 
 ## 🔗 Key Links & Deliverables
 
 - 📘 **Master Technical Documentation & Test Execution:** [README.md](README.md)
+- 🎥 **Live Walkthrough Video:** [demo/presentation_video.mp4](demo/presentation_video.mp4) | [YouTube](https://youtu.be/eweihmsbcKw)
 - 📊 **Executive Slide Deck:** [demo/TaskBoard_DevOps_Capstone_Presentation.pptx](demo/TaskBoard_DevOps_Capstone_Presentation.pptx)
 - 🌐 **Interactive Web Presentation Deck:** [docs/presentation.html](docs/presentation.html)
 - 📋 **Grading Rubric Compliance:** [GRADING.md](GRADING.md)
-- 🎥 **Video Walkthrough Guide:** [demo/README.md](demo/README.md)

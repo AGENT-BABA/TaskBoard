@@ -203,8 +203,8 @@ def create_deck():
             ("Race Condition Solved", "Solved PostgreSQL initdb startup delay using native Docker TCP healthcheck and `condition: service_healthy`."),
             ("Local Orchestration", "Single-command deployment with `docker compose up --build` connecting backend, frontend, postgres, and monitoring.")
         ],
-        "docs/screenshots/01-TaskBoard-DashBoard.jpg",
-        "Verified live TaskBoard UI running locally on localhost:3000"
+        "docs/screenshots/01-TaskBoard-DashBoard-02.jpg",
+        "Verified live TaskBoard Agile Kanban Board running locally on localhost:3000"
     )
 
     # ==========================================

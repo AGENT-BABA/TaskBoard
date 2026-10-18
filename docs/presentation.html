@@ -653,8 +653,15 @@
         </div>
         <div class="image-card">
           <div class="zoom-badge">🔍 Click to Zoom Full-Screen</div>
-          <img src="../docs/screenshots/01-TaskBoard-DashBoard.jpg" alt="TaskBoard UI">
-          <div class="image-caption">Verified live TaskBoard UI running locally on localhost:3000</div>
+          <img id="dashboard-img" src="../docs/screenshots/01-TaskBoard-DashBoard-02.jpg" alt="TaskBoard Kanban UI">
+          <div class="slider-nav" onclick="event.stopPropagation()">
+            <button class="slider-arrow-btn" onclick="switchDashboardSlide(currentDashboardIdx - 1, event)">❮</button>
+            <button class="dashboard-slider-tab slider-tab active" onclick="switchDashboardSlide(0, event)">1. Kanban Board</button>
+            <button class="dashboard-slider-tab slider-tab" onclick="switchDashboardSlide(1, event)">2. List Table</button>
+            <button class="dashboard-slider-tab slider-tab" onclick="switchDashboardSlide(2, event)">3. Sprint Analytics</button>
+            <button class="slider-arrow-btn" onclick="switchDashboardSlide(currentDashboardIdx + 1, event)">❯</button>
+          </div>
+          <div class="image-caption" id="dashboard-caption">TaskBoard SaaS UI (1/3) — Interactive Kanban Board with Quick Workflow Transitions</div>
         </div>
       </div>
     </div>
@@ -816,9 +823,9 @@
           <img id="prom-img" src="../docs/screenshots/15-prometheus-targets-01.jpg" alt="Prometheus Targets">
           <div class="slider-nav" onclick="event.stopPropagation()">
             <button class="slider-arrow-btn" onclick="switchPromSlide(currentPromIdx - 1, event)">❮</button>
-            <button class="slider-tab active" onclick="switchPromSlide(0, event)">1. Cluster Scrapes</button>
-            <button class="slider-tab" onclick="switchPromSlide(1, event)">2. Node Services</button>
-            <button class="slider-tab" onclick="switchPromSlide(2, event)">3. Backend (UP)</button>
+            <button class="prom-slider-tab slider-tab active" onclick="switchPromSlide(0, event)">1. Cluster Scrapes</button>
+            <button class="prom-slider-tab slider-tab" onclick="switchPromSlide(1, event)">2. Node Services</button>
+            <button class="prom-slider-tab slider-tab" onclick="switchPromSlide(2, event)">3. Backend (UP)</button>
             <button class="slider-arrow-btn" onclick="switchPromSlide(currentPromIdx + 1, event)">❯</button>
           </div>
           <div class="image-caption" id="prom-caption">Prometheus Target Health (1/3) — Cluster Services (CoreDNS, API Server)</div>
@@ -963,6 +970,39 @@
       if (e.key === 'ArrowLeft') prevSlide();
     });
 
+    // Dashboard Views Slider Logic
+    const dashboardImages = [
+      {
+        src: "../docs/screenshots/01-TaskBoard-DashBoard-02.jpg",
+        caption: "TaskBoard SaaS UI (1/3) — Interactive Kanban Board with Quick Workflow Transitions"
+      },
+      {
+        src: "../docs/screenshots/01-TaskBoard-DashBoard.jpg",
+        caption: "TaskBoard SaaS UI (2/3) — Full Task Table View with Priority Badges & Multi-Filters"
+      },
+      {
+        src: "../docs/screenshots/01-TaskBoard-DashBoard-03.jpg",
+        caption: "TaskBoard SaaS UI (3/3) — Sprint Analytics with SVG Donut Chart & Workload Breakdown"
+      }
+    ];
+
+    let currentDashboardIdx = 0;
+
+    function switchDashboardSlide(idx, event) {
+      if (event) event.stopPropagation();
+      currentDashboardIdx = (idx + dashboardImages.length) % dashboardImages.length;
+      const imgEl = document.getElementById("dashboard-img");
+      const captionEl = document.getElementById("dashboard-caption");
+      const tabs = document.querySelectorAll(".dashboard-slider-tab");
+
+      imgEl.src = dashboardImages[currentDashboardIdx].src;
+      captionEl.textContent = dashboardImages[currentDashboardIdx].caption;
+
+      tabs.forEach((tab, i) => {
+        tab.classList.toggle("active", i === currentDashboardIdx);
+      });
+    }
+
     // Prometheus Targets Slider Logic
     const promImages = [
       {
@@ -986,7 +1026,7 @@
       currentPromIdx = (idx + promImages.length) % promImages.length;
       const imgEl = document.getElementById("prom-img");
       const captionEl = document.getElementById("prom-caption");
-      const tabs = document.querySelectorAll(".slider-tab");
+      const tabs = document.querySelectorAll(".prom-slider-tab");
 
       imgEl.src = promImages[currentPromIdx].src;
       captionEl.textContent = promImages[currentPromIdx].caption;
